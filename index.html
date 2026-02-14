@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>San Valentín</title>
+    <style>
+        :root {
+            --paper: #f6eee5;
+            --ink: #2b2b2b;
+            --accent: #c5162f;
+            --accent2: #b3122b;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 30% 25%, #fff 0%, #f2e7db 52%, #ecd8c8 100%);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            color: var(--ink);
+        }
+
+        .card {
+            width: min(980px, 94vw);
+            height: min(560px, 78vh);
+            background: var(--paper);
+            border-radius: 26px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, .12);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, .06);
+        }
+
+        canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Inicio igual */
+        .startWrap {
+            position: absolute;
+            top: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .heartBtn {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .10));
+            transform-origin: center;
+            animation: pop 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pop {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.08)
+            }
+        }
+
+        .labelLine {
+            justify-content: center;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start
+        }
+
+        .labelText {
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 1000;
+            color: var(--accent2);
+            line-height: 1
+        }
+
+        .labelUnderline {
+            width: 130px;
+            height: 3px;
+            background: var(--accent2);
+            opacity: .85;
+            border-radius: 8px
+        }
+
+        .hand {
+            position: absolute;
+            top: 228px;
+            left: 50%;
+            transform: translateX(-78px);
+            z-index: 11;
+            font-size: 40px;
+            animation: tap 1.25s ease-in-out infinite;
+            pointer-events: none;
+            filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .12));
+        }
+
+        @keyframes tap {
+
+            0%,
+            100% {
+                transform: translateX(-78px) translateY(0) scale(1);
+                opacity: .9;
+            }
+
+            50% {
+                transform: translateX(-78px) translateY(8px) scale(.98);
+                opacity: 1;
+            }
+        }
+
+        /* Texto izquierda */
+        .left {
+            position: absolute;
+            left: 44px;
+            top: 120px;
+            width: min(360px, 46%);
+            z-index: 6;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity .6s ease, transform .6s ease;
+        }
+
+        .left.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .left .title {
+            font-size: 16px;
+            opacity: .9;
+            margin-bottom: 14px
+        }
+
+        .typed {
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            min-height: 160px
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            transform: translateY(2px);
+            animation: blink .9s infinite
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0
+            }
+        }
+
+        /* Timer aparece después del movimiento */
+        .timer {
+            position: absolute;
+            left: 44px;
+            bottom: 24px;
+            z-index: 6;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .7s ease, transform .7s ease;
+            pointer-events: none;
+        }
+
+        .timer.show {
+            opacity: .92;
+            transform: translateY(0)
+        }
+
+        .timer strong {
+            display: block;
+            margin-top: 6px;
+            font-size: 18px;
+            letter-spacing: .3px
+        }
+
+        @media (max-width:780px) {
+            .left {
+                left: 26px;
+                width: 54%
+            }
+
+            .timer {
+                left: 26px
+            }
+
+            .startWrap {
+                top: 160px
+            }
+
+            .hand {
+                top: 210px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <canvas id="cv"></canvas>
+
+        <div class="startWrap" id="start">
+            <svg class="heartBtn" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                    d="M12 21s-7.5-4.7-9.8-9.2C.2 7.7 2.8 4.5 6.2 4.5c1.9 0 3.4 1 4.3 2.2.9-1.2 2.4-2.2 4.3-2.2 3.4 0 6 3.2 4 7.3C19.5 16.3 12 21 12 21z"
+                    fill="#c5162f" />
+            </svg>
+            <div class="labelLine">
+                <div class="labelText"> San Valentín</div>
+                <div class="labelUnderline"></div>
+            </div>
+        </div>
+        <div class="hand" id="hand">☝️</div>
+
+        <div class="left" id="left">
+            <div class="title">Para mi amor:</div>
+            <div class="typed" id="typed"></div>
+        </div>
+
+        <div class="timer" id="timer">
+            Mi amor por ti comenzó hace…
+            <strong id="since">—</strong>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            // ====== PERSONALIZA ======
+            const MESSAGE =
+                `Si pudiera elegir un lugar
+seguro, sería a tu lado.
+
+Sé que no soy perfecto, 
+gracias por estar allí...
+
+— I Love You!`;
+
+            const START_DATE = new Date("2024-08-05T00:00:00"); // <-- CAMBIA LA FECHA
+            // =========================
+
+            const cv = document.getElementById("cv");
+            const ctx = cv.getContext("2d");
+            const DPR = Math.max(1, Math.min(2, devicePixelRatio || 1));
+            const rect = () => cv.getBoundingClientRect();
+
+            function resize() {
+                const r = rect();
+                cv.width = Math.floor(r.width * DPR);
+                cv.height = Math.floor(r.height * DPR);
+                ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+            }
+            addEventListener("resize", resize);
+            resize();
+
+            const W = () => rect().width;
+            const H = () => rect().height;
+            const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+            const rand = (a, b) => a + Math.random() * (b - a);
+
+            const centerX = () => W() * 0.50;
+            const gY = () => H() * 0.78;
+
+            // Movimiento final del árbol
+            let treeShiftX = 0;
+            const treeShiftTarget = () => W() * 0.18;
+
+            // ====== Línea del suelo: ahora crece desde el centro a los costados ======
+            let groundGrow = 0; // 0..1
+            function drawGroundGrowing() {
+                // crece desde el centro hacia ambos lados
+                const y = gY();
+                const leftLimit = W() * 0.06;
+                const rightLimit = W() * 0.94;
+                const cx = centerX();
+
+                const maxLeft = cx - leftLimit;
+                const maxRight = rightLimit - cx;
+
+                const l = maxLeft * groundGrow;
+                const r = maxRight * groundGrow;
+
+                ctx.strokeStyle = "rgba(0,0,0,.80)";
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.moveTo(cx - l, y);
+                ctx.lineTo(cx + r, y);
+                ctx.stroke();
+            }
+
+            // ====== Estados ======
+            // 0 espera click (sin línea)
+            // 1 punto cae (línea empieza a aparecer y crecer)
+            // 2 crece árbol
+            // 3 hojas forman corazón
+            // 4 árbol se desliza a la derecha + caída lenta + timer al final
+            let state = 0;
+            let t0 = performance.now();
+
+            // ====== ÁRBOL: ramas más cortas ======
+            class Branch {
+                constructor(points, width, color = "#7a4b2a") {
+                    this.points = points;
+                    this.width = width;
+                    this.color = color;
+                    this.g = 0;
+                }
+                step(dt, speed) { this.g = clamp(this.g + dt * speed, 0, 1); }
+                draw(offsetX) {
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = this.width;
+
+                    const pts = this.points;
+                    let total = 0; const seg = [];
+                    for (let i = 0; i < pts.length - 1; i++) {
+                        const dx = pts[i + 1].x - pts[i].x, dy = pts[i + 1].y - pts[i].y;
+                        const len = Math.hypot(dx, dy);
+                        seg.push(len); total += len;
+                    }
+                    const want = total * this.g;
+
+                    ctx.beginPath();
+                    ctx.moveTo(pts[0].x + offsetX, pts[0].y);
+                    let acc = 0;
+                    for (let i = 0; i < seg.length; i++) {
+                        const a = pts[i], b = pts[i + 1];
+                        if (acc + seg[i] <= want) {
+                            ctx.lineTo(b.x + offsetX, b.y);
+                            acc += seg[i];
+                        } else {
+                            const left = want - acc;
+                            const k = seg[i] === 0 ? 0 : left / seg[i];
+                            ctx.lineTo(a.x + (b.x - a.x) * k + offsetX, a.y + (b.y - a.y) * k);
+                            break;
+                        }
+                    }
+                    ctx.stroke();
+                }
+                done() { return this.g >= 1; }
+            }
+
+            const branches = [];
+            function buildBranches() {
+                branches.length = 0;
+                const gx = centerX();
+                const gy = gY();
+
+                // Tronco (similar al tuyo)
+                branches.push(new Branch([
+                    { x: gx, y: gy },
+                    { x: gx + 10, y: gy - 70 },
+                    { x: gx + 2, y: gy - 145 },
+                    { x: gx + 12, y: gy - 220 },
+                    { x: gx + 6, y: gy - 285 }
+                ], 18));
+
+                // Ramas MÁS CORTAS (para que las hojas las cubran)
+                branches.push(new Branch([
+                    { x: gx + 7, y: gy - 215 },
+                    { x: gx - 28, y: gy - 245 },
+                    { x: gx - 55, y: gy - 265 }
+                ], 5, "#6b3f23"));
+
+                branches.push(new Branch([
+                    { x: gx + 10, y: gy - 230 },
+                    { x: gx + 35, y: gy - 258 },
+                    { x: gx + 62, y: gy - 275 }
+                ], 5, "#6b3f23"));
+
+                branches.push(new Branch([
+                    { x: gx + 7, y: gy - 165 },
+                    { x: gx - 25, y: gy - 195 },
+                    { x: gx - 48, y: gy - 212 }
+                ], 6, "#6b3f23"));
+
+                branches.push(new Branch([
+                    { x: gx + 9, y: gy - 175 },
+                    { x: gx + 28, y: gy - 205 },
+                    { x: gx + 46, y: gy - 220 }
+                ], 6, "#6b3f23"));
+
+                // ramitas finas cortas
+                branches.push(new Branch([
+                    { x: gx - 45, y: gy - 212 },
+                    { x: gx - 62, y: gy - 225 }
+                ], 2.5, "#5c351e"));
+
+                branches.push(new Branch([
+                    { x: gx + 46, y: gy - 220 },
+                    { x: gx + 62, y: gy - 235 }
+                ], 2.5, "#5c351e"));
+            }
+
+            // ====== HOJAS CORAZÓN ======
+            function heartParam(t) {
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                return { x, y };
+            }
+            function drawMiniHeart(x, y, s, rot, color, alpha = 1) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rot);
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(0, s * 0.25);
+                ctx.bezierCurveTo(0, -s * 0.35, -s, -s * 0.35, -s, s * 0.25);
+                ctx.bezierCurveTo(-s, s * 0.85, 0, s * 1.0, 0, s * 1.3);
+                ctx.bezierCurveTo(0, s * 1.0, s, s * 0.85, s, s * 0.25);
+                ctx.bezierCurveTo(s, -s * 0.35, 0, -s * 0.35, 0, s * 0.25);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+                ctx.globalAlpha = 1;
+            }
+
+            const leafColors = ["#c5162f", "#d61b3a", "#ff3b63", "#ff7a8f", "#ffb3c1", "#ff506f"];
+            class HeartLeaf {
+                constructor(x, y) {
+                    this.bx = x; this.by = y;
+                    this.x = x; this.y = y;
+                    this.s = rand(4.6, 7.8);
+                    this.rot = rand(0, Math.PI * 2);
+                    this.phase = rand(0, Math.PI * 2);
+                    this.amp = rand(2, 7);
+                    this.speed = rand(0.8, 1.4);
+                    this.a = 0;
+                    this.ta = rand(0.75, 0.95);
+                    this.c = leafColors[(Math.random() * leafColors.length) | 0];
+                    this.t = rand(0, 9999);
+                }
+                step(dt, offsetX) {
+                    this.a = Math.min(this.ta, this.a + dt * 0.0022);
+                    this.t += dt * this.speed;
+
+                    const sx = Math.sin(this.t * 0.002 + this.phase) * this.amp;
+                    const sy = Math.cos(this.t * 0.0015 + this.phase) * this.amp * 0.25;
+
+                    this.x = this.bx + sx + offsetX;
+                    this.y = this.by + sy;
+
+                    // caída lenta diagonal hacia esquina inferior izquierda
+                    if (state >= 4 && Math.random() < 0.0011) {
+                        falling.push(new Falling(this.x, this.y, this.c));
+                    }
+                }
+                draw() { drawMiniHeart(this.x, this.y, this.s, this.rot, this.c, this.a); }
+            }
+
+            class Falling {
+                constructor(x, y, color) {
+                    this.x = x; this.y = y;
+                    this.vx = rand(-0.9, -2.45); // diagonal izquierda
+                    this.vy = rand(0.1, 0.2);  // lento
+                    this.g = 0.012;
+                    this.rot = rand(0, Math.PI * 2);
+                    this.vr = rand(-0.03, 0.03);
+                    this.s = rand(5, 9);
+                    this.a = 0.95;
+                    this.c = color;
+                }
+                step() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += this.g;
+                    this.a -= 0.0035; // dura más para llegar
+                    this.rot += this.vr;
+                }
+                draw() { drawMiniHeart(this.x, this.y, this.s, this.rot, this.c, Math.max(0, this.a)); }
+                dead() { return this.a <= 0 || this.y > H() + 120 || this.x < -140; }
+            }
+
+            const leaves = [];
+            const falling = [];
+            function canopyCenter() {
+                return { x: centerX(), y: gY() - 265 };
+            }
+            function sprinkleLeaves(progress) {
+                const target = Math.floor(1250 * progress);
+                while (leaves.length < target) {
+                    const c = canopyCenter();
+                    const t = Math.random() * Math.PI * 2;
+                    const p = heartParam(t);
+
+                    const scale = 7.25;
+                    const hx = c.x + p.x * scale;
+                    const hy = c.y - p.y * scale;
+
+                    const k = Math.random();
+                    const x = c.x + (hx - c.x) * k + rand(-5, 5);
+                    const y = c.y + (hy - c.y) * k + rand(-5, 5);
+
+                    if (y > gY() - 120) continue;
+                    leaves.push(new HeartLeaf(x, y));
+                }
+            }
+
+            // ====== punto cae ======
+            const seed = { x: 0, y: 0, vy: 0, alive: false };
+            function startSeedDrop() {
+                seed.alive = true;
+                seed.x = centerX();
+                seed.y = 240;
+                seed.vy = 0;
+            }
+
+            // ====== UI typing + timer ======
+            const typedEl = document.getElementById("typed");
+            const leftBox = document.getElementById("left");
+            const timerBox = document.getElementById("timer");
+            const sinceEl = document.getElementById("since");
+
+            let typingStarted = false;
+            function startTyping() {
+                if (typingStarted) return;
+                typingStarted = true;
+
+                typedEl.textContent = "";
+                let i = 0;
+                const cur = document.createElement("span");
+                cur.className = "cursor";
+                cur.textContent = "▌";
+                typedEl.appendChild(cur);
+
+                const it = setInterval(() => {
+                    if (i >= MESSAGE.length) {
+                        clearInterval(it);
+                        cur.remove();
+                        return;
+                    }
+                    cur.remove();
+                    typedEl.textContent += MESSAGE[i++];
+                    typedEl.appendChild(cur);
+                }, 28);
+            }
+
+            const pad2 = n => String(n).padStart(2, "0");
+            function updateSince() {
+                const now = new Date();
+                const ms = Math.max(0, now - START_DATE);
+                const sec = Math.floor(ms / 1000);
+                const days = Math.floor(sec / 86400);
+                const hh = Math.floor((sec % 86400) / 3600);
+                const mm = Math.floor((sec % 3600) / 60);
+                const ss = sec % 60;
+                sinceEl.textContent = `${days} días ${pad2(hh)} horas ${pad2(mm)} minutos ${pad2(ss)} segundos`;
+            }
+            setInterval(updateSince, 1000);
+            updateSince();
+
+            // ====== LOOP ======
+            let last = performance.now();
+
+            function loop(now) {
+                const dt = now - last; last = now;
+                ctx.clearRect(0, 0, W(), H());
+
+                // Línea: solo aparece desde que cae el puntito y crece a los lados
+                if (state >= 1) {
+                    // crecer línea rápido (como en tu captura)
+                    groundGrow = clamp(groundGrow + dt / 500, 0, 1);
+                    drawGroundGrowing();
+                }
+
+                // 1: semilla cae
+                if (state === 1) {
+                    seed.vy += 0.04;
+                    seed.y += seed.vy;
+                    if (seed.y >= gY()) {
+                        seed.y = gY();
+                        seed.vy = 0;
+
+                        state = 2;
+                        t0 = now;
+                        treeShiftX = 0;
+                        buildBranches();
+                    }
+                    ctx.fillStyle = "#c5162f";
+                    ctx.beginPath();
+                    ctx.arc(seed.x, seed.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // 2: crece árbol
+                if (state === 2) {
+                    const speedBase = 0.00052;
+                    for (let i = 0; i < branches.length; i++) {
+                        const b = branches[i];
+                        const extra = (i === 0) ? 1.35 : (i < 3 ? 1.0 : 0.92);
+                        b.step(dt, speedBase * extra);
+                        b.draw(treeShiftX);
+                    }
+                    if (branches.every(b => b.done())) {
+                        state = 3;
+                        t0 = now;
+                    }
+                }
+
+                // 3: aparece copa corazón (aún centrado)
+                if (state === 3) {
+                    for (const b of branches) { b.g = 1; b.draw(treeShiftX); }
+
+                    const prog = clamp((now - t0) / 2100, 0, 1);
+                    sprinkleLeaves(prog);
+
+                    for (const lf of leaves) {
+                        lf.step(dt, treeShiftX);
+                        lf.draw();
+                    }
+
+                    if (prog >= 1) {
+                        state = 4;
+                        t0 = now;
+                        leftBox.classList.add("show");
+                        startTyping();
+                    }
+                }
+
+                // 4: árbol se mueve a la derecha + caída lenta diagonal + timer al final
+                if (state === 4) {
+                    const slideT = clamp((now - t0) / 1400, 0, 1);
+                    const ease = 1 - Math.pow(1 - slideT, 3);
+                    treeShiftX = treeShiftTarget() * ease;
+
+                    for (const b of branches) { b.g = 1; b.draw(treeShiftX); }
+
+                    for (const lf of leaves) {
+                        lf.step(dt, treeShiftX);
+                        lf.draw();
+                    }
+
+                    for (let i = falling.length - 1; i >= 0; i--) {
+                        falling[i].step();
+                        falling[i].draw();
+                        if (falling[i].dead()) falling.splice(i, 1);
+                    }
+
+                    if (slideT >= 1) {
+                        timerBox.classList.add("show");
+                    }
+                }
+
+                requestAnimationFrame(loop);
+            }
+            requestAnimationFrame(loop);
+
+            // ====== Click start ======
+            const startBtn = document.getElementById("start");
+            const hand = document.getElementById("hand");
+
+            function startAnimation() {
+                if (state !== 0) return;
+                state = 1;
+                t0 = performance.now();
+                startSeedDrop();
+
+                startBtn.style.display = "none";
+                hand.style.display = "none";
+            }
+
+            // Inicia solo
+            setTimeout(startAnimation, 1200);
+
+            // También intenta por toque/click (opcional)
+            startBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); startAnimation(); });
+
+        })();
+    </script>
+</body>
+
+</html>
